@@ -32,15 +32,20 @@ def _parse_filename(filename):
         Returns None if the given filename is not a valid filename.
 
     """
-    filename_base, ext = os.path.splitext(filename)
-    if '.' in filename_base:
-        # Some images have double filename extensions.
-        filename_base, ext = os.path.splitext(filename_base)
-    if ext != ".jpg":
-        return None
-    person_id, cam_seq, frame_idx, detection_idx = filename_base.split('_')
-    return int(person_id), int(cam_seq[1]), filename_base, ext
+    # filename_base, ext = os.path.splitext(filename)
+    # if '.' in filename_base:
+    #     # Some images have double filename extensions.
+    #     filename_base, ext = os.path.splitext(filename_base)
+    # if ext != ".jpg":
+    #     return None
+    # person_id, cam_seq, frame_idx, detection_idx = filename_base.split('_')
+    # return int(person_id), int(cam_seq[1]), filename_base, ext
 
+    filename_base, ext = os.path.splitext(filename)
+
+    person_name, dir_file, frame_idx = filename_base.split('/')
+    return str(person_name), str(dir_file), filename_base, ext
+    
 
 def read_train_split_to_str(dataset_dir):
     """Read training data to list of filenames.
@@ -60,20 +65,29 @@ def read_train_split_to_str(dataset_dir):
         * List of camera indices.
 
     """
-    filenames, ids, camera_indices = [], [], []
+    #filenames, ids, camera_indices = [], [], []
+    image_list = []
+    image_path = '/home/maxwell/Downloads.....'
+    for home, dirs. files in os.walk(image_path):
+        for filename in files:
+            image_list.append(os.path.join(home,filename))
+    print ("successfully get image list")  
 
-    image_dir = os.path.join(dataset_dir, "bounding_box_train")
-    for filename in sorted(os.listdir(image_dir)):
-        meta_data = _parse_filename(filename)
-        if meta_data is None:
-            # This is not a valid filename (e.g., Thumbs.db).
-            continue
+    files = []
+    for f in sorted(os.listdir(b))
 
-        filenames.append(os.path.join(image_dir, filename))
-        ids.append(meta_data[0])
-        camera_indices.append(meta_data[1])
+    # image_dir = os.path.join(dataset_dir, "bounding_box_train")
+    # for filename in sorted(os.listdir(image_dir)):
+    #     meta_data = _parse_filename(filename)
+    #     if meta_data is None:
+    #         # This is not a valid filename (e.g., Thumbs.db).
+    #         continue
 
-    return filenames, ids, camera_indices
+    #     filenames.append(os.path.join(image_dir, filename))
+    #     ids.append(meta_data[0])
+    #     camera_indices.append(meta_data[1])
+
+    # return filenames, ids, camera_indices
 
 
 def read_train_split_to_image(dataset_dir):

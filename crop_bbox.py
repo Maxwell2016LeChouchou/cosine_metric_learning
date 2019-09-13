@@ -14,7 +14,7 @@ def split(df,group):
 def get_imagelist(image_path):
     image_list = []
 
-    for home, dirs, files in os. walk(image_path):
+    for home, dirs, files in os.walk(image_path):
         for filename in files:
             image_list.append(os.path.join(home,filename))
     
