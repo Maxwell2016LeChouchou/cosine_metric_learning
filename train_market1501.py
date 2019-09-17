@@ -8,7 +8,7 @@ from datasets import market1501
 from datasets import util
 import nets.deep_sort.network_definition as net
 
-#
+
 class Market1501(object):
 
     def __init__(self, dataset_dir, num_validation_y=0.1, seed=1234):
