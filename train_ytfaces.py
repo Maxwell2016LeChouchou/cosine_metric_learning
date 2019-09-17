@@ -15,7 +15,8 @@ class youtube_faces(object):
     
     def read_train(self):
         image_list, yt_person_name, yt_dir_file = youtube_faces.read_train_split_to_str(self._dataset_dir)
-        
+        train
+
 
 
         
