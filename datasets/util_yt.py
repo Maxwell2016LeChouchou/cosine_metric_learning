@@ -27,4 +27,19 @@ def crop_to_shape(images, patch_shape):
     
     target_aspect_ratio = float(patch_shape[1]) / patch_shape[0]
     for i, image in enumerate(images):
-        image_aspect_ratio = float(image.shape[1] / image.shape[0])
+        image_aspect_ratio = float(image.shape[1] / image.shape[0]
+        if target_aspect_ratio > image_aspect_ratio:
+            crop_height = image.shape[1] / target_aspect_ratio
+            crop_width = image.shape[1]
+        else:
+            crop_width = target_aspect_ratio * image.shape[0]
+            crop_height = image.shape[0]
+        
+        sx = int((image.shape[1] - crop_width) / 2)
+        sy = int((image.shape[0] - crop_height) / 2)
+        ex = int(min(sx + crop_width, image.shape[1]))
+        ey = int(min(sy + crop_height, image.shape[0]))
+        output_images[i, ...] = cv2.resize(
+            image[sy:ey, sx:ex], patch_shape[::-1],
+            interpolation = cv2.INTER_CUBIC
+        )
