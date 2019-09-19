@@ -7,6 +7,8 @@ import scipy.io as sio
 
 # The maximum person ID in the dataset.
 # MAX_LABEL = 1501
+MAX_LABEL = 1277 #There are 1277 youtube celebrities in train set
+
 
 # IMAGE_SHAPE = 128, 64, 3
 

@@ -107,6 +107,7 @@ def create_network(images, num_classes=None, add_logits=True, reuse=None,
 
 def create_network_factory(is_training, num_classes, add_logits,
                            weight_decay=1e-8, reuse=None):
+    # add_logits = args.loss_mode == "cosine-softmax"
 
     def factory_fn(image):
             with slim.arg_scope([slim.batch_norm, slim.dropout],

@@ -109,7 +109,7 @@ def to_eval_kwargs(args):
 
 
 def train_loop(preprocess_fn, network_factory, train_x, train_y,
-               num_images_per_id, batch_size, log_dir, image_shape=None,
+               num_images_per_person, batch_size, log_dir, image_shape=None,
                restore_path=None, exclude_from_restore=None, run_id=None,
                number_of_steps=None, loss_mode="cosine-softmax",
                learning_rate=1e-3, trainable_scopes=None,
@@ -188,7 +188,7 @@ def train_loop(preprocess_fn, network_factory, train_x, train_y,
         trainable_scopes=trainable_scopes)
 
     feed_generator = queued_trainer.random_sample_identities_forever(
-        batch_size, num_images_per_id, train_x, train_y)
+        batch_size, num_images_per_person, train_x, train_y)
 
     variables_to_restore = slim.get_variables_to_restore(
         exclude=exclude_from_restore)
