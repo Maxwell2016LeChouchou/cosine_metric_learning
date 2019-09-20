@@ -56,7 +56,7 @@ def main():
 
         network_factory = net.create_network_factory(
             is_training=True, num_classes=youtube_faces.MAX_LABEL + 1,
-            add_logits=arg.loss_mode == "cosine-softmax")
+            add_logits=args.loss_mode=="cosine-softmax")
         
         train_kwargs = train_app.to_train_kwargs(args)
         train_app.train_loop(
@@ -71,11 +71,11 @@ def main():
 
         network_factory = net.create_network_factory(
             is_training=False, num_classes=youtube_faces.MAX_LABEL + 1,
-            add_logits=arg.loss_mode == "cosine-softmax")
+            add_logits=args.loss_mode=="cosine-softmax")
         eval_kwargs = train_app.to_eval_kwargs(args)
         train_app.eval_loop(
             net.preprocess, network_factory, train_x, train_y, 
-            num_images_per_person = 10, image_shape=None, **eval_kwargs)
+            num_images_per_person=10, image_shape=None, **eval_kwargs)
 
     # elif args.mode == "export":
     #     # Export one specific model.
@@ -103,8 +103,28 @@ def main():
 
     elif args.mode == "finalize":
         network_factory = net.create_network_factory(
-            is_training=False, num_classes=youtubefaces.MAX_LABEL + 1,
-        )
+            is_training=False, num_classes=youtube_faces.MAX_LABEL + 1, 
+            add_logits=False, reuse=None)
+        train_app.finalize(
+            functools.partial(net.preprocess, input_is_bgr=True),
+            network_factory, args.restore_path, 
+            image_shape=youtube_faces.IMAGE.SHAPE,
+            output_filename="./youtube_faces.ckpt")
+    elif args.mode == "freeze":
+        network_factory = net.create_network_factory(
+            is_training=False, num_classes=youtube_faces.MAX_LABEL + 1,
+            add_logits=False, reuse=None)
+        train_app.freeze(
+            functools.partial(net.preprocess, input_is_bgr=True),
+            network_factory, args.restore_path,
+            image_shape=youtube_faces.IMAGE_SHAPE,
+            output_filename="./youtube_faces.ckpt")
+    else:
+        raise ValueError("Invalid mode argument.")
+
+if __name__ == "__main__":
+    main()
+        
 
 
     
