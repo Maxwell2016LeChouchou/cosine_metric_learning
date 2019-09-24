@@ -102,6 +102,7 @@ def limit_num_elements_per_identity(data_y, max_num_images_per_person, seed=None
         valid_mask[indices] = True
     return valid_mask
 
+# Below is the function defined for CMC, we will not use this in youtube face
 # def create_cmc_probe_and_gallery(data_y, camera_indices=None, seed=None):
 
 #     data_y = np.asarray(data_y)
