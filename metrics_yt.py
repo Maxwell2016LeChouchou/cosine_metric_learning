@@ -51,16 +51,17 @@ def cosine_distance(a, b=None):
         tf.constant(1.0, tf.float32) -
         tf.matmul(a_normed, tf.transpose(b_normed)))
 
+# Orginal code has other two functions defined below 
 """
-    def recognition_rate_at_k(probe_x, probe_y, gallery_x, gallery_y,
-                            k, measure=pdist):
-    # This function defined for calculating the CMC curve, which compute 
-      recognition rate at a given level 'k'
+def recognition_rate_at_k(probe_x, probe_y, gallery_x, gallery_y,
+                        k, measure=pdist):
+# This function defined for calculating the CMC curve, which compute 
+    recognition rate at a given level 'k'
 
-    def streaming_mean_cmc_at_k(probe_x, probe_y, gallery_x, gallery_y, 
+def streaming_mean_cmc_at_k(probe_x, probe_y, gallery_x, gallery_y, 
                                 k, measure=pdist):
-    # Compute cumulated matching charateristics (CMC) at level 'k' over 
-      a stream of data (ie, multiple batches)
+# Compute cumulated matching charateristics (CMC) at level 'k' over 
+    a stream of data (ie, multiple batches)
 """
 
 def streaming_mean_average_precision(probe_x, probe_y, gallery_x, gallery_y,
