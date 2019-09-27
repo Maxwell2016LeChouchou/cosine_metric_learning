@@ -188,8 +188,8 @@ def create_default_argument_parser(dataset_name):
             exclude=exclude_from_restore)
         trainer.run(
             feed_generator, train_op, log_dir, restore_path=restore_path, 
-            variables_to_restore=variables_to_restore,
-        )
+            variables_to_restore=variables_to_restore, run_id=run_id,
+            )
         
 
     def create_trainer(preprocess_fn, network_factory, read_from_file, 
@@ -231,7 +231,7 @@ def create_default_argument_parser(dataset_name):
 
         """        
 
-        num_channels = image_shape[-1] if len(image_shape) ==3 else 1
+        num_channels = image_shape[-1] if len(image_shape) == 3 else 1
 
         with tf.device("/cpu:0"):
             label_var = tf.placeholder(tf.int64, (None, ))
@@ -252,13 +252,96 @@ def create_default_argument_parser(dataset_name):
                 tf.map_fn(
                     lambda x: preprocess_fn(x, is_training=True),
                     image_var, back_prop=False, dtype=tf.float32),
-                label_vars
+                label_vars]
             
         trainer = queued_trainer.QueuedTrainer(enqueue_vars, inputs_vars)
         image_var, label_var = Trainer.get_input_vars(batch_size)
         tf.summary.image("images", image_var)
     
     feature_var, logit_var = network_factory(image_var)
+    _create_loss(feature_var, logit_var, label_var, mode=loss_mode)
+
+    if trainable_scopes is None:
+        variables_to_train = tf.trainable_variables()
+    else:
+        variables_to_train = []
+        for scope in trainable_scopes:
+            variables = tf.get_collection(
+                tf.Graphkeys.TRAINABLE_VARIABLES, scope)
+            variables_to_train.extend(variables)
+    
+    global_step = tf.train.get_or_create_global_step()
+
+    loss_var = tf.losses.get_total_loss()
+    train_op = slim.learning.create_train_op(
+        loss_var, tf.train.AdamOptimizer(learning_rate=learning_rate),
+        gloabl_step, summarize_gradients=False, 
+        variables_to_train=variables_to_train)
+    tf.summary.scalar("total_loss", loss_var)
+    tf.summary.scalar("learning_rate", learning_rate)
+
+    regularization_var = tf.reduce_sum(tf.losses.get_regularization_loss())
+    tf.summary.scalar("weight_loss", regularization_var)
+    return trainer, train_op
+
+def eval_loop(preprocess_fn, network_factory, data_x, data_y, yt_dir_file,
+                log_dir, eval_log_dir, image_shape=None, run_id=None,
+                loss_mode="cosine-softmax", num_galleries=10, 
+                random_seed=4321):
+        """Evaluate a running training session using CMC metric averaged over
+    `num_galleries` galleries where each gallery contains for every identity a
+    randomly selected image-pair.
+
+    A call to this function will block indefinitely, monitoring the
+    `log_dir/run_id` for saved checkpoints. Then, creates summaries in
+    `eval_log_dir/run_id` that can be monitored with tensorboard.
+
+    Parameters
+    ----------
+    preprocess_fn : Callable[tf.Tensor] -> tf.Tensor
+        A callable that applies preprocessing to a given input image tensor of
+        dtype tf.uint8 and returns a floating point representation (tf.float32).
+    network_factory : Callable[tf.Tensor] -> (tf.Tensor, tf.Tensor)
+        A callable that takes as argument a preprocessed input image of dtype
+        tf.float32 and returns the feature representation as well as a logits
+        tensors. The logits may be set to None if not required by the loss.
+    data_x : List[str] | np.ndarray
+        A list of image filenames or a tensor of images.
+    data_y : List[int] | np.ndarray
+        A list or one-dimensional array of labels for the images in `data_x`.
+    camera_indices: Optional[List[int] | np.ndarray]
+    yt_dir_file: Optional[List[int]]
+        A list or one-dimensinal array of youtube celebrity's faces in 
+        different videos, frames in each video is one file in this argument
+    log_dir: str
+        Should be equivalent to the `log_dir` passed into `train_loop` of the
+        training run to monitor.
+    eval_log_dir:
+        Used to construct the tensorboard log directory where metrics are
+        summarized.
+    image_shape : Tuple[int, int, int] | NoneType
+        Image shape (height, width, channels) or None. If None, `train_x` must
+        be an array of images such that the shape can be queries from this
+        variable.
+    run_id : str
+        A string that identifies the training run; must be set to the same
+        `run_id` passed into `train_loop`.
+    loss_mode : Optional[str]
+        A string that identifies the loss function used for training; must be
+        one of 'cosine-softmax', 'magnet', 'triplet'. This value defaults to
+        'cosine-softmax'.
+    num_galleries: int
+        The number of galleries to be constructed for evaluation of CMC
+        metrics.
+    random_seed: Optional[int]
+        If not None, the NumPy random seed is fixed to this number; can be used
+        to produce the same galleries over multiple runs.
+    """
+
+    if image_shape is None:
+
+            
+
 
 
 
