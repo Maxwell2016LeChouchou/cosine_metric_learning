@@ -288,7 +288,7 @@ def eval_loop(preprocess_fn, network_factory, data_x, data_y, yt_dir_file,
                 log_dir, eval_log_dir, image_shape=None, run_id=None,
                 loss_mode="cosine-softmax", num_galleries=10, 
                 random_seed=4321):
-        """Evaluate a running training session using CMC metric averaged over
+    """Evaluate a running training session using CMC metric averaged over
     `num_galleries` galleries where each gallery contains for every identity a
     randomly selected image-pair.
 
@@ -339,7 +339,24 @@ def eval_loop(preprocess_fn, network_factory, data_x, data_y, yt_dir_file,
     """
 
     if image_shape is None:
+        # If image-shape is not set, train_x must be an image array. 
+        # Here we query the image shape from the array of images.
 
+        assert type(data_x) == np.ndarray
+        image_shape = data_x.shape[1:]
+
+    elif type(data_x) == np.ndarray:
+        assert data_x.shape[1:] == image_shape
+    read_from_file = type(data_x) != np.ndarray
+
+    # # Create num_galleries random CMC galleries to average CMC top-k over.
+    # probes, galleries = [], []
+    # for i in range(num_galleries):
+    #     probe_indices, gallery_indices = util.create_cmc_probe_and_gallery(
+    #         data_y, camera_indices, seed=random_seed + i)
+    #     probes.append(probe_indices)
+    #     galleries.append(gallery_indices)
+    # probes, galleries = np.asarray(probes), np.asarray(galleries)
             
 
 
