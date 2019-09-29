@@ -337,29 +337,125 @@ def eval_loop(preprocess_fn, network_factory, data_x, data_y, yt_dir_file,
         If not None, the NumPy random seed is fixed to this number; can be used
         to produce the same galleries over multiple runs.
     """
+    ############################
+    # Set this function as empty since we are not eval this model using CMC
 
+def finalize(preprocess_fn, network_factory, checkpoint_path, image_shape,
+            output_filename):
+    
+    with tf.Session(graph=tf.Graph()) as sess:
+        input_var = tf.placeholder(tf.uint8, (None, ) + image_shape)
+        image_var = tf.map_fn(
+            lambda x: preprocess_fn(x, is_training=False), 
+            input_var, back_prop=False, dtype=tf.float32
+        )
+        network_factory(image_var)
+
+        loader = tf.train.Saver(slim.get_variables_to_restore())
+        loader.restore(sess, checkpoint_path)
+
+        saver = tf.train.Saver(slim.get_model_variables())
+        saver.save(sess, output_filename, global_step=None)
+
+def freeze(preprocess_fn, network_factory, checkpoint_path, image_shape,
+            output_filename, input_name="images", feature_name="features"):
+    """Write frozen inference graph that takes as input a list of images and
+    returns their feature representation.
+
+    Parameters
+    ----------
+    preprocess_fn : Callable[tf.Tensor] -> tf.Tensor
+        A callable that applies preprocessing to a given input image tensor of
+        dtype tf.uint8 and returns a floating point representation (tf.float32).
+    network_factory : Callable[tf.Tensor] -> (tf.Tensor, tf.Tensor)
+        A callable that takes as argument a preprocessed input image of dtype
+        tf.float32 and returns the feature representation as well as a logits
+        tensors. The logits may be set to None if not required by the loss.
+    checkpoint_path : str
+        The checkpoint file to load.
+    image_shape : Tuple[int, int, int]
+        Image shape (height, width, channels).
+    output_filename : str
+        Path to the file to write to.
+    input_name : Optional[str]
+        The input (image) placeholder will be given this name; defaults
+        to `images`.
+    feature_name : Optional[str]
+        The output (feature) tensor will be given this name; defaults to
+        `features`.
+
+    """
+    with tf.Session(graph=tf.Graph()) as sess:
+        input_var = tf.placeholder(
+            tf.uint8, (None, ) + image_shape, name=input_name)
+        image_var = tf.map_fn(
+            lambda x: preprocess_fn(x, is_training=False),
+            input_var, back_prop=False, dtype=tf.float32)
+        features, _ = network_factory(image_var)
+        features = tf.identity(features, name=feature_name)
+
+        saver = tf.train.Saver(slim.get_variables_to_restore())
+        saver.restore(sess, checkpoint_path)
+
+        output_graph_def = tf.graph_util.convert_variables_to_constants(
+            sess, tf.get_default_graph().as_graph_def(),
+            [features.name.split(":")[0]])
+        with tf.gfile.GFile(output_filename, "wb") as file_handle:
+            file_handle.write(output_graph_def.SerializeToString())
+
+def encode(preprocess_fn, network_factory, checkpoint_path, images_or_filenames,
+            batch_size=32, sess=None, image_shape=None):
+    """
+
+    Parameters
+    ----------
+    preprocess_fn : Callable[tf.Tensor] -> tf.Tensor
+        A callable that applies preprocessing to a given input image tensor of
+        dtype tf.uint8 and returns a floating point representation (tf.float32).
+    network_factory : Callable[tf.Tensor] -> (tf.Tensor, tf.Tensor)
+        A callable that takes as argument a preprocessed input image of dtype
+        tf.float32 and returns the feature representation as well as a logits
+        tensors. The logits may be set to None if not required by the loss.
+    checkpoint_path : str
+        Checkpoint file to load.
+    images_or_filenames : List[str] | np.ndarray
+        Either a list of filenames or an array of images.
+    batch_size : Optional[int]
+        Optional batch size; defaults to 32.
+    session : Optional[tf.Session]
+        Optional TensorFlow session. If None, a new session is created.
+    image_shape : Tuple[int, int, int] | NoneType
+        Image shape (height, width, channels) or None. If None, `train_x` must
+        be an array of images such that the shape can be queries from this
+        variable.
+
+    Returns
+    -------
+    np.ndarray
+
+    """
     if image_shape is None:
-        # If image-shape is not set, train_x must be an image array. 
-        # Here we query the image shape from the array of images.
+        assert type(images_or_filenames) == np.ndarray
+        image_shape = images_or_filenames.shape[1:]
+    elif type(images_or_filenames) == np.ndarray:
+        assert images_or_filenames.shape[1:] == image_shape
+    read_from_file = type(images_or_filenames) != np.ndarray
 
-        assert type(data_x) == np.ndarray
-        image_shape = data_x.shape[1:]
+    encoder_fn = _create_encoder(
+        preprocess_fn, network_factory, image_shape, batch_size, sess,
+        checkpoint_path, read_from_file)
+    features = encoder_fn(images_or_filenames)
+    return features
 
-    elif type(data_x) == np.ndarray:
-        assert data_x.shape[1:] == image_shape
-    read_from_file = type(data_x) != np.ndarray
-
-    # # Create num_galleries random CMC galleries to average CMC top-k over.
-    # probes, galleries = [], []
-    # for i in range(num_galleries):
-    #     probe_indices, gallery_indices = util.create_cmc_probe_and_gallery(
-    #         data_y, camera_indices, seed=random_seed + i)
-    #     probes.append(probe_indices)
-    #     galleries.append(gallery_indices)
-    # probes, galleries = np.asarray(probes), np.asarray(galleries)
-            
+def _create_encoder(preprocess_fn, network_factory, image_shape, batch_size=32,
+                    sess=None, checkpoint_path=None, read_frome_file=False):
 
 
+
+
+
+    
+        
 
 
     
