@@ -448,7 +448,91 @@ def encode(preprocess_fn, network_factory, checkpoint_path, images_or_filenames,
     return features
 
 def _create_encoder(preprocess_fn, network_factory, image_shape, batch_size=32,
-                    sess=None, checkpoint_path=None, read_frome_file=False):
+                    sess=None, checkpoint_path=None, read_from_file=False):
+    if read_from_file:
+        num_channels = image_shape[-1] if len(image_shape) == 3 else 1
+        input_var = tf.placeholder(tf.string, (None, ))
+        image_var = tf.map_fn(
+            lambda x: tf.image.decode_jpeg(
+                tf.read_file(x), channels=num_channels),
+            input_var, back_prop=False, dtype=tf.uint8)
+        image_var = tf.image.resize_images(image_var, image_shape[:2])
+    else:
+        input_var = tf.placeholder(tf.uint8, (None, ) + image_shape)
+        image_var = input_var
+
+    preprocessed_image_var = tf.map_fn(
+        lambda x: preprocess_fn(x, is_training=False),
+        image_var, back_prop=False, dtype=tf.float32)
+    
+    feature_var, _ = network_factory(preprocessed_image_var)
+    feature_dim = feature_var.get_shape().as_list()[-1]
+
+    if sess is None:
+        sess = tf.Session()
+    if checkpoint_path is not None:
+        tf.train.get_or_create_global_step()
+        init_assign_op, init_feed_dict = slim.assign_from_checkpoint(
+            checkpoint_path, slim.get_model_variables())
+        sess.run(init_assign_op, feed_dict=init_feed_dict)
+    
+    def encoder(data_x):
+        out = np.zeros((len(data_x), feature_dim), np.float32)
+        queued_trainer.run_in_batches(
+            lambda x: session.run(feature_var, feed_dict=x),
+            {input_var: data_x}, out, batch_size)
+        return out
+    
+    return encoder
+
+def _create_softmax_loss(feature_var, logit_var, label_var):
+    del feature_var  # Unused variable
+    cross_entropy_var = slim.losses.sparse_softmax_cross_entropy(
+        logit_var, tf.cast(label_var, tf.int64))
+    tf.summary.scalar("cross_entropy_loss", cross_entropy_var)
+
+    accuracy_var = slim.metrics.accuracy(
+        tf.cast(tf.argmax(logit_var, 1), tf.int64), label_var)
+    tf.summary.scalar("classification accuracy", accuracy_var)
+
+def _create_magnet_loss(feature_var, logit_var, label_var, monitor_mode=False):
+    del logit_var  # Unused variable 
+    magnet_loss, _, _ = losses.magnet_loss(feature_var, label_var)
+    tf.summary.scalar("magnet_loss", magnet_loss)
+    if not monitor_mode:
+        slim.losses.add_loss(magnet_loss)
+
+def _create_triplet_loss(feature_var, logit_var, label_var, monitor_mode=False):
+    del logit_var  #Unused variables
+    triplet_loss = losses.softmargin_triplet_loss(feature_var, label_var)
+    tf.summary.scalar("triplet_loss", triplet_loss)
+    if not monitor_mode:
+        slim.losses.add_loss(triplet_loss)
+
+def _create_loss(
+        feature_var, logit_var, label_var, mode, monitor_magnet=True,
+        monitor_triplet=True):
+    if mode == "cosine-softmax":
+        _create_softmax_loss(feature_var, logit_var, label_var)
+    elif mode == "magnet":
+        _create_magnet_loss(feature_var, logit_var, label_var)
+    elif mode == "triplet":
+        _create_triplet_loss(feature_var, logit_var, label_var)
+    else:
+        raise ValueError("Unknown loss mode: '%s'" % mode)
+
+    if monitor_magnet and mode != "magnet":
+        _create_magnet_loss(
+            feature_var, logit_var, label_var, monitor_mode=monitor_magnet)
+    if monitor_triplet and mode != "triplet":
+        _create_triplet_loss(
+            feature_var, logit_var, label_var, monitor_mode=True)
+
+
+
+    
+
+
 
 
 

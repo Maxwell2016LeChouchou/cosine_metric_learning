@@ -14,7 +14,7 @@ def run_in_batches(f, data_dict, out, batch_size):
     Parameters
     ----------
     f : Callable[Dict[tf.Tensor, np.ndarray] -> np.ndarray
-        A function that maps a given input (one or multiple inpu arrays) to a
+        A function that maps a given input (one or multiple input arrays) to a
         single output array.
     data_dict : Dict[tf.Tensor, np.ndarray]
         Maps from symbolic input tensor to numpy data array.
