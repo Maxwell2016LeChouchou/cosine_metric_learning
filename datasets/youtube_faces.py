@@ -19,17 +19,17 @@ def _parse_filename(filename):
     Parameters
     ----------
     filename : str
-        A Market 1501 image filename.
+        A Youtube Faces dataset directory 
 
     Returns
     -------
     (int, int, str, str) | NoneType
         Returns a tuple with the following entries:
 
-        * Unique ID of the individual in the image
-        * Index of the camera which has observed the individual
-        * Filename without extension
-        * File extension
+        * person name of the youtube celebrities by their names
+        * dir file of each person which is extracted from one video to frames
+        * image frame of filename 
+        * file extension
 
         Returns None if the given filename is not a valid filename.
 
@@ -50,23 +50,23 @@ def _parse_filename(filename):
     
 
 def read_train_split_to_str(dataset_dir):
-    # """Read training data to list of filenames.
+    """Read training data to list of filenames.
 
-    # Parameters
-    # ----------
-    # dataset_dir : str
-    #     Path to the Market 1501 dataset directory.
+    Parameters
+    ----------
+    dataset_dir : str
+        Path to the Youtube faces dataset directory.
 
-    # Returns
-    # -------
-    # (List[str], List[int], List[int])
-    #     Returns a tuple with the following values:
+    Returns
+    -------
+    (List[str], List[int], List[int])
+        Returns a tuple with the following values:
 
-    #     * List of image filenames (full path to image files).
-    #     * List of unique IDs for the individuals in the images.
-    #     * List of camera indices.
+        * List of image filenames (full path to image files).
+        * List of Youtube faces for the individuals in the images.
+        * List of which sub-folder of youtube faces dirctory.
 
-    # """
+    """
 
     image_list = []
     yt_person_name = []

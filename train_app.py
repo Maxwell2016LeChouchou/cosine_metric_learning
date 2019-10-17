@@ -336,7 +336,7 @@ def eval_loop(preprocess_fn, network_factory, data_x, data_y, camera_indices,
     loss_mode : Optional[str]
         A string that identifies the loss function used for training; must be
         one of 'cosine-softmax', 'magnet', 'triplet'. This value defaults to
-        'cosine-softmax'.
+        'cosine-softmax'.ckpoint directo
     num_galleries: int
         The number of galleries to be constructed for evaluation of CMC
         metrics.
