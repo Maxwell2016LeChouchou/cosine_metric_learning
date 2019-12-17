@@ -43,10 +43,6 @@ if __name__ == "__main__":
     main()
 
 
-
-
-
-
 import tensorflow as tf
  2 import numpy as np
  3 import glob
