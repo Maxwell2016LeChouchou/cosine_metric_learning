@@ -571,18 +571,25 @@ class QueuedTrainer(object):
             self._enqueue_threads.append(thread)
 
     def _run_enqueue_thread(self, session):
-        try:
-            for data in self._feed_generator:
-                if self._coordinator.should_stop():
-                    break
-                try:
-                    feed_dict = {
-                        var: value for var, value in
-                        zip(self._input_vars, data)}
-                    session.run(self._enqueue_op, feed_dict=feed_dict)
-                except (tf.errors.CancelledError, tf.errors.AbortedError):
-                    # We have been requested to stop enqueuing data.
-                    break
-        except Exception as e:
-            print("EnqueueError:", e)
-            self._stop_all_threads(session)
+        # try:
+        #     for data in self._feed_generator:
+        #         if self._coordinator.should_stop():
+        #             break
+        #         try:
+        #             feed_dict = {
+        #                 var: value for var, value in
+        #                 zip(self._input_vars, data)}
+        #             session.run(self._enqueue_op, feed_dict=feed_dict)
+        #         except (tf.errors.CancelledError, tf.errors.AbortedError):
+        #             # We have been requested to stop enqueuing data.
+        #             break
+        # except Exception as e:
+        #     print("EnqueueError:", e)
+        #     self._stop_all_threads(session)
+        for data in self._feed_generator:
+            if self._coordinator.should_stop():
+                break
+            feed_dict = {
+                var: value for var, value in
+                zip(self._input_vars, data)}
+            session.run(self._enqueue_op, feed_dict=feed_dict)

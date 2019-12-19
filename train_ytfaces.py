@@ -4,9 +4,12 @@ import numpy as np
 import scipy.io as sio 
 import train_app
 from datasets import youtube_faces
+from datasets import util
 import nets.deep_sort.network_definition as net 
 
-class youtube_faces(object):
+IMAGE_SHAPE = 64, 64, 3
+
+class Youtube_faces(object):
     
     def __init__(self, dataset_dir, num_validation_y=0.1, seed=1234):
         self._dataset_dir = dataset_dir
@@ -14,39 +17,44 @@ class youtube_faces(object):
         self._seed = seed
     
     def read_train(self):
-        image_list, yt_person_name, yt_dir_file = youtube_faces.read_train_split_to_str(
+        filenames, ids, camera_indices, _ = youtube_faces.read_train_split_to_str(
             self._dataset_dir)
         train_indices, _ = util.create_validation_split(
             np.asarray(ids, np.int64), self._num_validation_y, self._seed)
         
-        image_list = [image_list[i] for i in train_indices]
-        yt_person_name = [yt_person_name[i] for i in train_indices]
-        yt_dir_file = [yt_dir_file[i] for i in train_indices]
-
-        return image_list, yt_person_name, yt_dir_file
+        filenames = [filenames[i] for i in train_indices]
+        ids = [ids[i] for i in train_indices]
+        camera_indices = [camera_indices[i] for i in train_indices]
+        return filenames, ids, camera_indices
     
     def read_validation(self):
-        image_list, yt_person_name, yt_dir_file = youtube_faces.read_train_split_to_str(
+        filenames, ids, camera_indices, _ = youtube_faces.read_train_split_to_str(
             self._dataset_dir)
         _, valid_indices = util.create_validation_split(
             np.asarray(ids, np.int64), self._num_validation_y, self._seed)
 
-        image_list = [image_list[i] for i in valid_indices]
-        yt_person_name = [yt_person_name[i] for i in valid_indices]
-        yt_dir_file = [yt_dir_file[i] for i in valid_indices]
+        filenames = [filenames[i] for i in valid_indices]
+        ids = [ids[i] for i in valid_indices]
+        camera_indices = [camera_indices[i] for i in valid_indices]
 
-        return image_list, yt_person_name, yt_dir_file
+        return filenames, ids, camera_indices
 
-    def read_test(self):
-        return youtube_faces.read_test_split_to_str(self._dataset_dir)
+    # def read_test_filenames(self):
+    #     filename = os.path.join(self._dataset_dir, "info", "test_name.txt")
+    #     with open(filename, "r") as file_handle:
+    #         content = file_handle.read()
+    #         lines = content.splitlines()
+
+    #     image_dir = os.path.join(self._dataset_dir, "bbox_test")
+    #     return [os.path.join(image_dir, f[:4], f) for f in lines]
 
 def main():
     arg_parser = train_app.create_default_argument_parser("youtube_faces")
     arg_parser.add_argument(
         "--dataset_dir", help="path to youtube_faces dataset directory.",
-        default="cosine_metric_learning/datasets")
+        default="/home/maxwell/Desktop/yt_test_data/")
     args = arg_parser.parse_args()
-    dataset = youtube_faces(args.dataset_dir, num_validation_y=0.1, seed=1234)
+    dataset = Youtube_faces(args.dataset_dir, num_validation_y=0.1, seed=1234)
 
     if args.mode == "train":
         train_x, train_y, _ = dataset.read_train()
@@ -57,16 +65,15 @@ def main():
         network_factory = net.create_network_factory(
             is_training=True, num_classes=youtube_faces.MAX_LABEL + 1,
             add_logits=args.loss_mode=="cosine-softmax")
-        
         train_kwargs = train_app.to_train_kwargs(args)
         train_app.train_loop(
             net.preprocess, network_factory, train_x, train_y,
-            num_images_per_person=10, image_shape=None, **train_kwargs)
+            num_images_per_id=10, image_shape=IMAGE_SHAPE, **train_kwargs)
     
     elif args.mode == "eval":
-        valid_x, valid_y, yt_dir_file = dataset.read_validation()
+        valid_x, valid_y, camera_indices = dataset.read_validation()
         print("Validation set size: %d images, %d persons" %(
-            len(train_x), len(np.unique(valid_y))
+            len(valid_x), len(np.unique(valid_y))
         ))
 
         network_factory = net.create_network_factory(
@@ -74,8 +81,8 @@ def main():
             add_logits=args.loss_mode=="cosine-softmax")
         eval_kwargs = train_app.to_eval_kwargs(args)
         train_app.eval_loop(
-            net.preprocess, network_factory, train_x, train_y, 
-            num_images_per_person=10, image_shape=None, **eval_kwargs)
+            net.preprocess, network_factory, valid_x, valid_y, camera_indices,
+            image_shape=IMAGE_SHAPE, num_galleries=20, **eval_kwargs)
 
     # elif args.mode == "export":
     #     # Export one specific model.
@@ -107,8 +114,7 @@ def main():
             add_logits=False, reuse=None)
         train_app.finalize(
             functools.partial(net.preprocess, input_is_bgr=True),
-            network_factory, args.restore_path, 
-            image_shape=youtube_faces.IMAGE.SHAPE,
+            network_factory, args.restore_path, image_shape=IMAGE_SHAPE,
             output_filename="./youtube_faces.ckpt")
     elif args.mode == "freeze":
         network_factory = net.create_network_factory(
@@ -116,8 +122,7 @@ def main():
             add_logits=False, reuse=None)
         train_app.freeze(
             functools.partial(net.preprocess, input_is_bgr=True),
-            network_factory, args.restore_path,
-            image_shape=youtube_faces.IMAGE_SHAPE,
+            network_factory, args.restore_path, image_shape=IMAGE_SHAPE,
             output_filename="./youtube_faces.ckpt")
     else:
         raise ValueError("Invalid mode argument.")
