@@ -10,7 +10,7 @@ import csv
 MAX_LABEL = 159 
 
 
-# IMAGE_SHAPE = 64, 64, 3
+IMAGE_SHAPE = 64, 64, 3
 
 def row_csv2dict(csv_file):
     dict_club={}
@@ -46,8 +46,8 @@ def read_train_directory_to_str(directory):
     ids = []
     camera_indices = []
     tracklet_indices = []
-    youtube_dic = row_csv2dict('/home/maxwell/Desktop/yt_test_data/train_image_pairs.txt')
-    train_dir = '/home/maxwell/Desktop/yt_test_data/bbox_train/'
+    youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/train_image_pairs.txt')
+    train_dir = '/home/max/Desktop/yt_test_data/bbox_train/'
 
     for file_dir in os.listdir(directory):
         txt = os.path.join(directory, file_dir)
@@ -93,8 +93,8 @@ def read_test_directory_to_str(directory):
     ids = []
     camera_indices = []
     tracklet_indices = []
-    youtube_dic = row_csv2dict('/home/maxwell/Desktop/yt_test_data/test_image_pairs.txt')
-    train_dir = '/home/maxwell/Desktop/yt_test_data/bbox_test/'
+    youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/test_image_pairs.txt')
+    train_dir = '/home/max/Desktop/yt_test_data/bbox_test/'
 
     for file_dir in os.listdir(directory):
         txt = os.path.join(directory, file_dir)
