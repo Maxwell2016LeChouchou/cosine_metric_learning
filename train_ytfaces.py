@@ -7,7 +7,6 @@ from datasets import youtube_faces
 from datasets import util
 import nets.deep_sort.network_definition as net 
 
-IMAGE_SHAPE = 64, 64, 3
 
 class Youtube_faces(object):
     
@@ -17,25 +16,33 @@ class Youtube_faces(object):
         self._seed = seed
     
     def read_train(self):
-        filenames, ids, camera_indices, _ = youtube_faces.read_train_split_to_str(
+        filenames, ids, camera_indices = youtube_faces.read_train_split_to_image(
             self._dataset_dir)
         train_indices, _ = util.create_validation_split(
             np.asarray(ids, np.int64), self._num_validation_y, self._seed)
         
-        filenames = [filenames[i] for i in train_indices]
-        ids = [ids[i] for i in train_indices]
-        camera_indices = [camera_indices[i] for i in train_indices]
+        # filenames = [filenames[i] for i in train_indices]
+        # ids = [ids[i] for i in train_indices]
+        # camera_indices = [camera_indices[i] for i in train_indices]
+
+        filenames = np.array(filenames)[train_indices]
+        ids = np.array(ids)[train_indices]
+        camera_indices = np.array(camera_indices)[train_indices]
         return filenames, ids, camera_indices
     
     def read_validation(self):
-        filenames, ids, camera_indices, _ = youtube_faces.read_train_split_to_str(
+        filenames, ids, camera_indices, = youtube_faces.read_train_split_to_image(
             self._dataset_dir)
         _, valid_indices = util.create_validation_split(
             np.asarray(ids, np.int64), self._num_validation_y, self._seed)
 
-        filenames = [filenames[i] for i in valid_indices]
-        ids = [ids[i] for i in valid_indices]
-        camera_indices = [camera_indices[i] for i in valid_indices]
+        # filenames = [filenames[i] for i in valid_indices]
+        # ids = [ids[i] for i in valid_indices]
+        # camera_indices = [camera_indices[i] for i in valid_indices]
+
+        filenames = np.array(filenames)[valid_indices]
+        ids = np.array(ids)[valid_indices]
+        camera_indices = np.array(camera_indices)[valid_indices]
 
         return filenames, ids, camera_indices
 
@@ -68,7 +75,7 @@ def main():
         train_kwargs = train_app.to_train_kwargs(args)
         train_app.train_loop(
             net.preprocess, network_factory, train_x, train_y,
-            num_images_per_id=4, image_shape=IMAGE_SHAPE, **train_kwargs)
+            num_images_per_id=4, image_shape=youtube_faces.IMAGE_SHAPE, **train_kwargs)
     
     elif args.mode == "eval":
         valid_x, valid_y, camera_indices = dataset.read_validation()
@@ -82,8 +89,10 @@ def main():
         eval_kwargs = train_app.to_eval_kwargs(args)
         train_app.eval_loop(
             net.preprocess, network_factory, valid_x, valid_y, camera_indices,
-            image_shape=IMAGE_SHAPE, num_galleries=20, **eval_kwargs)
+            image_shape=youtube_faces.IMAGE_SHAPE, **eval_kwargs)
 
+    elif args.mode == "export":
+        raise NotImplementedError()
     # elif args.mode == "export":
     #     # Export one specific model.
     #     gallery_filenames, _, query_filenames, _, _ = dataset.read_test()

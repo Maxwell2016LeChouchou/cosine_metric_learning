@@ -7,7 +7,7 @@ import csv
 
 # The maximum person ID in the dataset.
 # MAX_LABEL = 1501
-MAX_LABEL = 159 
+MAX_LABEL = 158 
 
 
 IMAGE_SHAPE = 64, 64, 3
@@ -45,11 +45,10 @@ def read_train_directory_to_str(directory):
     image_filenames = []
     ids = []
     camera_indices = []
-    tracklet_indices = []
-    youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/train_image_pairs.txt')
-    train_dir = '/home/max/Desktop/yt_test_data/bbox_train/'
+    youtube_dic = row_csv2dict('/home/maxwell/Desktop/yt_test_data/train_image_pairs.txt')
+    train_dir = '/home/maxwell/Desktop/yt_test_data/bbox_train/'
 
-    for file_dir in os.listdir(directory):
+    for file_dir in sorted(os.listdir(directory)):
         txt = os.path.join(directory, file_dir)
         for line in open(txt, "r"):
             data = line.split(",")
@@ -59,14 +58,12 @@ def read_train_directory_to_str(directory):
             person = file_info[0]
             person_ids = youtube_dic[person]
             camera = file_info[1]
-            tracklet = camera
 
             image_filenames.append(image_path)
-            ids.append(person_ids)
-            camera_indices.append(camera)
-            tracklet_indices.append(tracklet)
+            ids.append(int(person_ids))
+            camera_indices.append(int(camera))
 
-    return image_filenames, ids, camera_indices, tracklet_indices
+    return image_filenames, ids, camera_indices
 
 
 def read_test_directory_to_str(directory):
@@ -92,11 +89,10 @@ def read_test_directory_to_str(directory):
     image_filenames= []
     ids = []
     camera_indices = []
-    tracklet_indices = []
-    youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/test_image_pairs.txt')
-    train_dir = '/home/max/Desktop/yt_test_data/bbox_test/'
+    youtube_dic = row_csv2dict('/home/maxwell/Desktop/yt_test_data/test_image_pairs.txt')
+    train_dir = '/home/maxwell/Desktop/yt_test_data/bbox_test/'
 
-    for file_dir in os.listdir(directory):
+    for file_dir in sorted(os.listdir(directory)):
         txt = os.path.join(directory, file_dir)
         for line in open(txt, "r"):
             data = line.split(",")
@@ -106,14 +102,12 @@ def read_test_directory_to_str(directory):
             person = file_info[0]
             person_ids = youtube_dic[person]
             camera = file_info[1]
-            tracklet = camera
 
             image_filenames.append(image_path)
             ids.append(person_ids)
             camera_indices.append(camera)
-            tracklet_indices.append(tracklet)
 
-    return image_filenames, ids, camera_indices, tracklet_indices
+    return image_filenames, ids, camera_indices
 
 
 def read_train_directory_to_image(directory, image_shape=(64, 64)): #Completed 
@@ -137,26 +131,26 @@ def read_train_directory_to_image(directory, image_shape=(64, 64)): #Completed
         * One dimensional array of tracklet indices.
 
     """
-    reshape_fn = (
-        (lambda x: x) if image_shape == IMAGE_SHAPE[:2]
-        else (lambda x: cv2.resize(x, image_shape[::-1])))
+    # reshape_fn = (
+    #     (lambda x: x) if image_shape == IMAGE_SHAPE[:2]
+    #     else (lambda x: cv2.resize(x, image_shape[::-1])))
     
-    filenames, ids, camera_indices, tracklet_indices = (
+    filenames, ids, camera_indices = (
         read_train_directory_to_str(directory))
 
-    images = np.zeros((len(filenames), ) + image_shape + (3, ), np.uint8)
+    images = np.zeros((len(filenames), ) + IMAGE_SHAPE , np.uint8)
     for i, filename in enumerate(filenames):
         if i % 1000 == 0:
             print("Reading %s, %d / %d" % (directory, i, len(filenames)))
         image = cv2.imread(filename, cv2.IMREAD_COLOR)
-        images[i] = reshape_fn(image)    
+        # images[i] = reshape_fn(image)   
+        images[i] = cv2.resize(image, IMAGE_SHAPE[:2][::-1])    
     ids = np.asarray(ids, dtype=np.int64)
     camera_indices = np.asarray(camera_indices, dtype=np.int64)
-    tracklet_indices = np.asarray(tracklet_indices, dtype=np.int64)
-    return images, ids, camera_indices, tracklet_indices
+    return images, ids, camera_indices
 
 
-def read_test_directory_to_image(directory, image_shape=(64, 64)): #Completed 
+def read_test_directory_to_image(directory): #Completed 
     """Read images in bbox_train/bbox_test directory.
 
     Parameters
@@ -177,23 +171,24 @@ def read_test_directory_to_image(directory, image_shape=(64, 64)): #Completed
         * One dimensional array of tracklet indices.
 
     """
-    reshape_fn = (
-        (lambda x: x) if image_shape == IMAGE_SHAPE[:2]
-        else (lambda x: cv2.resize(x, image_shape[::-1])))
+    # reshape_fn = (
+    #     (lambda x: x) if image_shape == IMAGE_SHAPE[:2]
+    #     else (lambda x: cv2.resize(x, image_shape[::-1])))
     
-    filenames, ids, camera_indices, tracklet_indices = (
+    filenames, ids, camera_indices = (
         read_test_directory_to_str(directory))
 
-    images = np.zeros((len(filenames), ) + image_shape + (3, ), np.uint8)
+    images = np.zeros((len(filenames), ) + IMAGE_SHAPE, np.uint8)
     for i, filename in enumerate(filenames):
         if i % 1000 == 0:
             print("Reading %s, %d / %d" % (directory, i, len(filenames)))
         image = cv2.imread(filename, cv2.IMREAD_COLOR)
-        images[i] = reshape_fn(image)    
+        # images[i] = reshape_fn(image)
+        images[i] = cv2.resize(image, IMAGE_SHAPE[:2][::-1])    
     ids = np.asarray(ids, dtype=np.int64)
     camera_indices = np.asarray(camera_indices, dtype=np.int64)
-    tracklet_indices = np.asarray(tracklet_indices, dtype=np.int64)
-    return images, ids, camera_indices, tracklet_indices
+    #tracklet_indices = np.asarray(tracklet_indices, dtype=np.int64)
+    return images, ids, camera_indices
 
 
 
@@ -221,7 +216,7 @@ def read_train_split_to_str(dataset_dir): # Completed
     return read_train_directory_to_str(train_dir)
 
 
-def read_train_split_to_image(dataset_dir, image_shape=(64, 64)): # Completed 
+def read_train_split_to_image(dataset_dir): # Completed 
     """Read training images to memory. This consumes a lot of memory.
 
     Parameters
@@ -244,7 +239,7 @@ def read_train_split_to_image(dataset_dir, image_shape=(64, 64)): # Completed
 
     """
     train_dir = os.path.join(dataset_dir, "csv_train")
-    return read_train_directory_to_image(train_dir, image_shape)
+    return read_train_directory_to_image(train_dir)
 
 
 def read_test_split_to_str(dataset_dir):   #Completed
@@ -271,7 +266,7 @@ def read_test_split_to_str(dataset_dir):   #Completed
     return read_test_directory_to_str(test_dir)
 
 
-def read_test_split_to_image(dataset_dir, image_shape=(64, 64)):  # Completed 
+def read_test_split_to_image(dataset_dir):  # Completed 
     """Read test images to memory. This consumes a lot of memory.
 
     Parameters
@@ -294,5 +289,5 @@ def read_test_split_to_image(dataset_dir, image_shape=(64, 64)):  # Completed
 
     """
     test_dir = os.path.join(dataset_dir, "csv_test")
-    return read_test_directory_to_image(test_dir, image_shape)
+    return read_test_directory_to_image(test_dir)
 
