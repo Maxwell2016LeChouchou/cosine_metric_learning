@@ -635,21 +635,26 @@ def _create_triplet_loss(feature_var, logit_var, label_var, monitor_mode=False):
     if not monitor_mode:
         slim.losses.add_loss(triplet_loss)
 
+
 def _create_angular_loss(feature_var, logit_var, label_var, monitor_mode=False):
-    
+    del logit_var
+    angular_loss, _ = losses.angular_softmax_loss(feature_var, label_var)
+    tf.summary.scalar("angular_loss", angular_loss)
+    if not monitor_mode:
+        slim.losses.add_loss(angular_loss)
 
 
 def _create_loss(
         feature_var, logit_var, label_var, mode, monitor_magnet=True,
-        monitor_triplet=True):
+        monitor_triplet=True, monitor_angular=True):
     if mode == "cosine-softmax":
         _create_softmax_loss(feature_var, logit_var, label_var)
     elif mode == "magnet":
         _create_magnet_loss(feature_var, logit_var, label_var)
     elif mode == "triplet":
         _create_triplet_loss(feature_var, logit_var, label_var)
-    elif mode == "angular"
-        _create_angular_loss
+    elif mode == "angular":
+        _create_angular_loss(feature_var, logit_var, label_var)
     else:
         raise ValueError("Unknown loss mode: '%s'" % mode)
 
@@ -659,3 +664,6 @@ def _create_loss(
     if monitor_triplet and mode != "triplet":
         _create_triplet_loss(
             feature_var, logit_var, label_var, monitor_mode=True)
+    if monitor_triplet and mode != "angular":
+        _create_triplet_loss(
+            feature_var, logit_var, label_var, monitor_mode=True)        

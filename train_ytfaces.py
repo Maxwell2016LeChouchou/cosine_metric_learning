@@ -71,7 +71,7 @@ def main():
 
         network_factory = net.create_network_factory(
             is_training=True, num_classes=youtube_faces.MAX_LABEL + 1,
-            add_logits=args.loss_mode=="cosine-softmax")
+            add_logits=args.loss_mode=="angular")
         train_kwargs = train_app.to_train_kwargs(args)
         train_app.train_loop(
             net.preprocess, network_factory, train_x, train_y,
@@ -85,7 +85,7 @@ def main():
 
         network_factory = net.create_network_factory(
             is_training=False, num_classes=youtube_faces.MAX_LABEL + 1,
-            add_logits=args.loss_mode=="cosine-softmax")
+            add_logits=args.loss_mode=="angular")
         eval_kwargs = train_app.to_eval_kwargs(args)
         train_app.eval_loop(
             net.preprocess, network_factory, valid_x, valid_y, camera_indices,
@@ -124,7 +124,7 @@ def main():
         train_app.finalize(
             functools.partial(net.preprocess, input_is_bgr=True),
             network_factory, args.restore_path, image_shape=IMAGE_SHAPE,
-            output_filename="./youtube_faces.ckpt")
+            output_filename="./youtube_faces_angular.ckpt")
     elif args.mode == "freeze":
         network_factory = net.create_network_factory(
             is_training=False, num_classes=youtube_faces.MAX_LABEL + 1,
@@ -132,7 +132,7 @@ def main():
         train_app.freeze(
             functools.partial(net.preprocess, input_is_bgr=True),
             network_factory, args.restore_path, image_shape=youtube_faces.IMAGE_SHAPE,
-            output_filename="./youtube_faces.pb")
+            output_filename="./youtube_faces_angular.pb")
     else:
         raise ValueError("Invalid mode argument.")
 
