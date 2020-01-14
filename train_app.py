@@ -637,8 +637,7 @@ def _create_triplet_loss(feature_var, logit_var, label_var, monitor_mode=False):
 
 
 def _create_angular_loss(feature_var, logit_var, label_var, monitor_mode=False):
-    del logit_var
-    angular_loss, _ = losses.angular_softmax_loss(feature_var, label_var)
+    angular_loss, _ = losses.angular_softmax_loss(feature_var, logit_var, label_var)
     tf.summary.scalar("angular_loss", angular_loss)
     if not monitor_mode:
         slim.losses.add_loss(angular_loss)
