@@ -45,8 +45,8 @@ def read_train_directory_to_str(directory):
     image_filenames = []
     ids = []
     camera_indices = []
-    youtube_dic = row_csv2dict('/home/maxwell/Desktop/yt_test_data/train_image_pairs.txt')
-    train_dir = '/home/maxwell/Desktop/yt_test_data/bbox_train/'
+    youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/train_image_pairs.txt')
+    train_dir = '/home/max/Desktop/yt_test_data/bbox_train/'
 
     for file_dir in sorted(os.listdir(directory)):
         txt = os.path.join(directory, file_dir)
@@ -89,8 +89,8 @@ def read_test_directory_to_str(directory):
     image_filenames= []
     ids = []
     camera_indices = []
-    youtube_dic = row_csv2dict('/home/maxwell/Desktop/yt_test_data/test_image_pairs.txt')
-    train_dir = '/home/maxwell/Desktop/yt_test_data/bbox_test/'
+    youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/test_image_pairs.txt')
+    train_dir = '/home/max/Desktop/yt_test_data/bbox_test/'
 
     for file_dir in sorted(os.listdir(directory)):
         txt = os.path.join(directory, file_dir)

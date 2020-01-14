@@ -59,7 +59,7 @@ def main():
     arg_parser = train_app.create_default_argument_parser("youtube_faces")
     arg_parser.add_argument(
         "--dataset_dir", help="path to youtube_faces dataset directory.",
-        default="/home/maxwell/Desktop/yt_test_data/")
+        default="/home/maxwell/Desktop/yt_test_data")
     args = arg_parser.parse_args()
     dataset = Youtube_faces(args.dataset_dir, num_validation_y=0.1, seed=1234)
 
@@ -131,8 +131,8 @@ def main():
             add_logits=False, reuse=None)
         train_app.freeze(
             functools.partial(net.preprocess, input_is_bgr=True),
-            network_factory, args.restore_path, image_shape=IMAGE_SHAPE,
-            output_filename="./youtube_faces.ckpt")
+            network_factory, args.restore_path, image_shape=youtube_faces.IMAGE_SHAPE,
+            output_filename="./youtube_faces.pb")
     else:
         raise ValueError("Invalid mode argument.")
 

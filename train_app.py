@@ -635,6 +635,9 @@ def _create_triplet_loss(feature_var, logit_var, label_var, monitor_mode=False):
     if not monitor_mode:
         slim.losses.add_loss(triplet_loss)
 
+def _create_angular_loss(feature_var, logit_var, label_var, monitor_mode=False):
+    
+
 
 def _create_loss(
         feature_var, logit_var, label_var, mode, monitor_magnet=True,
@@ -645,6 +648,8 @@ def _create_loss(
         _create_magnet_loss(feature_var, logit_var, label_var)
     elif mode == "triplet":
         _create_triplet_loss(feature_var, logit_var, label_var)
+    elif mode == "angular"
+        _create_angular_loss
     else:
         raise ValueError("Unknown loss mode: '%s'" % mode)
 
