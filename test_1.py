@@ -2,6 +2,13 @@ import os
 import numpy as np 
 import csv
 
+csv_dir ='/home/max/Desktop/yt_test_data/test_image_pairs.txt'
+array_dic = []
+for line in open(csv_dir,"r"):
+    data = line.split(",")
+    filename = data[0]
+    array_dic.append(filename)
+print(len(array_dic))
 
 # def extract_file_dir(input_dir, output_dir):
 #     array_dic = []

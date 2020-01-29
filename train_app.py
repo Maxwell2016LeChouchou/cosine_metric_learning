@@ -664,5 +664,5 @@ def _create_loss(
         _create_triplet_loss(
             feature_var, logit_var, label_var, monitor_mode=True)
     if monitor_triplet and mode != "angular":
-        _create_triplet_loss(
+        _create_angular_loss(
             feature_var, logit_var, label_var, monitor_mode=True)        

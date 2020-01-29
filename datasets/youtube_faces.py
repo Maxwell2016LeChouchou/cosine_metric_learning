@@ -1,4 +1,3 @@
-# vim: expandtab:ts=4:sw=4
 import os
 import numpy as np
 import cv2
@@ -7,7 +6,7 @@ import csv
 
 # The maximum person ID in the dataset.
 # MAX_LABEL = 1501
-MAX_LABEL = 158 
+MAX_LABEL = 1400
 
 
 IMAGE_SHAPE = 64, 64, 3
@@ -48,9 +47,11 @@ def read_train_directory_to_str(directory):
     youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/train_image_pairs.txt')
     train_dir = '/home/max/Desktop/yt_test_data/bbox_train/'
 
-    for file_dir in sorted(os.listdir(directory)):
+    for file_dir in sorted(os.listdir(directory)):        
         txt = os.path.join(directory, file_dir)
-        for line in open(txt, "r"):
+        
+        dic_temp = {}
+        for line in open(txt, "r"):            
             data = line.split(",")
             filename = data[0]
             image_path = os.path.join(train_dir,filename)
@@ -58,12 +59,22 @@ def read_train_directory_to_str(directory):
             person = file_info[0]
             person_ids = youtube_dic[person]
             camera = file_info[1]
-
-            image_filenames.append(image_path)
-            ids.append(int(person_ids))
-            camera_indices.append(int(camera))
+            if camera not in dic_temp:
+                dic_temp[camera] = [[image_path, person_ids, camera]]
+            else:
+                if len(dic_temp[camera]) < 15:                                        
+                    dic_temp[camera].append([image_path, person_ids, camera])
+        # print(dic_temp)
+        for k, v in dic_temp.items():                        
+            for image_path, person_ids, camera in v:
+                image_filenames.append(image_path)
+                ids.append(person_ids)
+                camera_indices.append(camera)
+    # for img_file in image_filenames:
+    #     print(img_file)
 
     return image_filenames, ids, camera_indices
+
 
 
 def read_test_directory_to_str(directory):
@@ -92,9 +103,12 @@ def read_test_directory_to_str(directory):
     youtube_dic = row_csv2dict('/home/max/Desktop/yt_test_data/test_image_pairs.txt')
     train_dir = '/home/max/Desktop/yt_test_data/bbox_test/'
 
-    for file_dir in sorted(os.listdir(directory)):
+
+    for file_dir in sorted(os.listdir(directory)):        
         txt = os.path.join(directory, file_dir)
-        for line in open(txt, "r"):
+        
+        dic_temp = {}
+        for line in open(txt, "r"):            
             data = line.split(",")
             filename = data[0]
             image_path = os.path.join(train_dir,filename)
@@ -102,13 +116,21 @@ def read_test_directory_to_str(directory):
             person = file_info[0]
             person_ids = youtube_dic[person]
             camera = file_info[1]
-
-            image_filenames.append(image_path)
-            ids.append(person_ids)
-            camera_indices.append(camera)
+            if camera not in dic_temp:
+                dic_temp[camera] = [[image_path, person_ids, camera]]
+            else:
+                if len(dic_temp[camera]) < 15:                                        
+                    dic_temp[camera].append([image_path, person_ids, camera])
+        # print(dic_temp)
+        for k, v in dic_temp.items():                        
+            for image_path, person_ids, camera in v:
+                image_filenames.append(image_path)
+                ids.append(person_ids)
+                camera_indices.append(camera)
+    # for img_file in image_filenames:
+    #     print(img_file)
 
     return image_filenames, ids, camera_indices
-
 
 def read_train_directory_to_image(directory, image_shape=(64, 64)): #Completed 
     """Read images in bbox_train/bbox_test directory.
@@ -290,4 +312,3 @@ def read_test_split_to_image(dataset_dir):  # Completed
     """
     test_dir = os.path.join(dataset_dir, "csv_test")
     return read_test_directory_to_image(test_dir)
-

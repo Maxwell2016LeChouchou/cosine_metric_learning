@@ -59,7 +59,7 @@ def main():
     arg_parser = train_app.create_default_argument_parser("youtube_faces")
     arg_parser.add_argument(
         "--dataset_dir", help="path to youtube_faces dataset directory.",
-        default="/home/maxwell/Desktop/yt_test_data")
+        default="/home/max/Desktop/yt_test_data")
     args = arg_parser.parse_args()
     dataset = Youtube_faces(args.dataset_dir, num_validation_y=0.1, seed=1234)
 
@@ -71,7 +71,7 @@ def main():
 
         network_factory = net.create_network_factory(
             is_training=True, num_classes=youtube_faces.MAX_LABEL + 1,
-            add_logits=args.loss_mode=="angular")
+            add_logits=args.loss_mode=="cosine-softmax")
         train_kwargs = train_app.to_train_kwargs(args)
         train_app.train_loop(
             net.preprocess, network_factory, train_x, train_y,
@@ -85,7 +85,7 @@ def main():
 
         network_factory = net.create_network_factory(
             is_training=False, num_classes=youtube_faces.MAX_LABEL + 1,
-            add_logits=args.loss_mode=="angular")
+            add_logits=args.loss_mode=="cosine-softmax")
         eval_kwargs = train_app.to_eval_kwargs(args)
         train_app.eval_loop(
             net.preprocess, network_factory, valid_x, valid_y, camera_indices,
@@ -124,7 +124,7 @@ def main():
         train_app.finalize(
             functools.partial(net.preprocess, input_is_bgr=True),
             network_factory, args.restore_path, image_shape=IMAGE_SHAPE,
-            output_filename="./youtube_faces_angular.ckpt")
+            output_filename="./youtube_faces.ckpt")
     elif args.mode == "freeze":
         network_factory = net.create_network_factory(
             is_training=False, num_classes=youtube_faces.MAX_LABEL + 1,
@@ -132,7 +132,7 @@ def main():
         train_app.freeze(
             functools.partial(net.preprocess, input_is_bgr=True),
             network_factory, args.restore_path, image_shape=youtube_faces.IMAGE_SHAPE,
-            output_filename="./youtube_faces_angular.pb")
+            output_filename="./youtube_faces.pb")
     else:
         raise ValueError("Invalid mode argument.")
 

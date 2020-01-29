@@ -348,7 +348,7 @@ class QueuedTrainer(object):
 
     def run(self, feed_generator, train_op, log_dir="/tmp/slim_trainer/",
             restore_path=None, variables_to_restore=None, run_id=None,
-            max_checkpoints_to_keep=0, **kwargs):
+            max_checkpoints_to_keep=5, **kwargs):
         """ Run training.
 
         Parameters
